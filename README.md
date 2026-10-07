@@ -4,7 +4,7 @@ Interactive quarterly cash flow forecast for a multi-store retail chain, with sc
 
 > **Note on data:** all store names, company names and amounts are **synthetic**. They were generated for this project and do not correspond to a real company. The structure and logic of the model are inspired by a real retail finance case.
 
-**Live demo:** `https://riccardo-sindoni.github.io/cashflow-forecast-retail/`
+**Live demo:** https://riccardo-sindoni.github.io/cashflow-forecast-retail/
 
 ## Business problem
 A retail group with 23 stores needs to know, month by month, whether cash will cover the Christmas season: incomes peak in December, but goods ordered in November are paid 30 days later, and a 13th-month salary and VAT payments fall in the same weeks.
