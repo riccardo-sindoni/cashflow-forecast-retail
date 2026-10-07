@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash flow forecast Q4 2026 - demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: header + controls bar, KPI row, 2x2 chart grid, detail table, notes. Utilitarian finance dashboard. */
+:root{
+  --bg:#f4f5f7; --surface:#ffffff; --surface-2:#eef1f5; --line:#dde2e9; --grid:#e8ebf0;
+  --fg:#14181f; --fg-2:#4a5260; --fg-3:#7a8291;
+  --accent:#1c5cab; --accent-soft:#e3edf9; --on-accent:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --good:#1a7f45; --good-bg:#e4f4ea; --warn:#9a6200; --warn-bg:#fdf1d8;
+  --font:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121417; --surface:#1b1e23; --surface-2:#23272e; --line:#2f343c; --grid:#2a2e35;
+  --fg:#f1f3f6; --fg-2:#b6bcc6; --fg-3:#8a919c;
+  --accent:#5598e7; --accent-soft:#1d2d44; --on-accent:#0b1220;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9e2f;
+  --good:#5fd08f; --good-bg:#16301f; --warn:#f0b54a; --warn-bg:#33270f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1b1e23; --surface-2:#23272e; --line:#2f343c; --grid:#2a2e35;
+  --fg:#f1f3f6; --fg-2:#b6bcc6; --fg-3:#8a919c;
+  --accent:#5598e7; --accent-soft:#1d2d44; --on-accent:#0b1220;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9e2f;
+  --good:#5fd08f; --good-bg:#16301f; --warn:#f0b54a; --warn-bg:#33270f; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+h1{font-size:26px;line-height:1.15;margin:4px 0 0;font-weight:700;text-wrap:balance}
+.sub{color:var(--fg-2);margin:4px 0 0;font-size:13.5px}
+.stamp{font-family:var(--mono);font-size:12px;color:var(--fg-3);text-align:right}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.controls{display:grid;grid-template-columns:auto 1fr;gap:16px 28px;padding:16px 18px;align-items:center}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{font:inherit;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--fg-2);padding:7px 14px;border-radius:6px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.seg button:focus-visible,.chips button:focus-visible,input:focus-visible,.reset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sliders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 22px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--fg-2);font-weight:500}
+.ctl output,.ctl .val{font-family:var(--mono);color:var(--fg);font-weight:600}
+.ctl input[type=range]{width:100%;accent-color:var(--accent);margin-top:6px}
+.ctl input[type=number]{width:100%;margin-top:4px;font:inherit;font-family:var(--mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.ctl small{display:block;color:var(--fg-3);font-size:11px;margin-top:2px}
+.reset{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg-2);padding:5px 10px;border-radius:6px;cursor:pointer}
+.ctlhead{display:flex;flex-direction:column;gap:8px}
+.ivabar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;border-top:1px solid var(--line);padding-top:14px}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--fg-2)}
+.switch b{color:var(--fg)}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{flex:none;width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .15s}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track::after{transform:translateX(16px)}
+.switch input:focus-visible+.track{outline:2px solid var(--accent);outline-offset:2px}
+.switch input:disabled+.track,.switch input:disabled~span{opacity:.45;cursor:not-allowed}
+.ivanote{flex-basis:100%;margin:0;font-size:12px;color:var(--fg-3)}
+.ivanote b{color:var(--fg);font-family:var(--mono);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi .lab{font-size:12px;color:var(--fg-2);font-weight:500}
+.kpi .num{font-family:var(--mono);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.kpi .det{font-size:12px;color:var(--fg-3)}
+.kpi.hero{background:var(--accent-soft);border-color:transparent}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px}
+.pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.card{padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{font-size:15px;margin:0;font-weight:700}
+.card .hint{font-size:12px;color:var(--fg-3);margin:-6px 0 0}
+.chartbox{position:relative;height:280px}
+.chartbox.tall{height:560px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg-2);padding:4px 10px;border-radius:999px;cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:13px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-3);font-weight:600;border-bottom:1px solid var(--line)}
+td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td:first-child{font-family:var(--font)}
+tr.sum td{font-weight:600;background:var(--surface-2)}
+tr.sec td{font-family:var(--font);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-3);font-weight:600;padding-top:12px}
+td.neg{color:var(--fg-2)}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--fg-2);font-size:13px;max-width:70ch}
+.notes b{color:var(--fg)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+footer{font-size:12px;color:var(--fg-3)}
+@media (max-width:980px){.sliders{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid,.notes{grid-template-columns:1fr}.controls{grid-template-columns:1fr}}
+@media (max-width:520px){.sliders,.kpis{grid-template-columns:1fr}.wrap{padding-inline:16px}.kpi .num{font-size:21px}h1{font-size:22px}.chartbox.tall{height:640px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Catena retail · Società A · B · C</div>
+      <h1>Cash flow previsionale ottobre–dicembre 2026</h1>
+      <p class="sub">23 punti vendita. Dati sintetici ispirati a un caso reale. Scegli uno scenario o modifica le ipotesi: tutto si ricalcola.</p>
+    </div>
+    <div class="stamp">Modello dimostrativo<br>Dati sintetici gen–set 2026</div>
+  </header>
+
+  <section class="panel controls" aria-label="Scenario e ipotesi">
+    <div class="ctlhead">
+      <span class="eyebrow">Scenario</span>
+      <div class="seg" role="group" aria-label="Scenario">
+        <button id="sc-p" data-g="0" aria-pressed="false">Prudente</button>
+        <button id="sc-b" data-g="2.5" aria-pressed="true">Base</button>
+        <button id="sc-o" data-g="8" aria-pressed="false">Ottimistico</button>
+      </div>
+    </div>
+    <div class="sliders">
+      <div class="ctl">
+        <label for="g">Crescita incassi vs 2025 <output id="g-out"></output></label>
+        <input id="g" type="range" min="-10" max="15" step="0.5" value="2.5">
+        <small>Prudente 0% · Base 2,5% · Ottimistico 8%</small>
+      </div>
+      <div class="ctl">
+        <label for="mp">Merce su incassi <output id="mp-out"></output></label>
+        <input id="mp" type="range" min="30" max="45" step="0.1" value="35.8">
+        <small>Valore di riferimento apr–set: 36,0%</small>
+      </div>
+      <div class="ctl">
+        <label for="ex">Altre uscite al mese <output id="ex-out"></output></label>
+        <input id="ex" type="range" min="0" max="100000" step="1000" value="0">
+        <small>Uscite non presenti nei dati, esclusa l'IVA</small>
+      </div>
+      <div class="ctl">
+        <label for="s0">Saldo iniziale al 30/09 <button class="reset" id="reset" type="button">Ripristina</button></label>
+        <input id="s0" type="number" step="1000" inputmode="numeric">
+        <small>Somma flussi gen–set (non è un saldo bancario)</small>
+      </div>
+    </div>
+    <div class="ivabar">
+      <label class="switch" for="iva"><input id="iva" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span><span><b>Includi IVA</b> · liquidazioni mensili versate il 16 del mese dopo, anche su gen–set</span></label>
+      <label class="switch" for="acc"><input id="acc" type="checkbox" role="switch" checked disabled><span class="track" aria-hidden="true"></span><span>Acconto IVA 27 dicembre (88% della liquidazione di dicembre)</span></label>
+      <p class="ivanote" id="iva-note"></p>
+    </div>
+  </section>
+
+  <section class="kpis" aria-label="Indicatori del trimestre">
+    <div class="panel kpi"><span class="lab">Entrate del trimestre</span><span class="num" id="k-in"></span><span class="det" id="k-in-d"></span></div>
+    <div class="panel kpi"><span class="lab">Uscite del trimestre</span><span class="num" id="k-out"></span><span class="det" id="k-out-d"></span></div>
+    <div class="panel kpi"><span class="lab">Flusso di cassa netto</span><span class="num" id="k-net"></span><span class="det" id="k-net-d"></span></div>
+    <div class="panel kpi hero"><span class="lab">Saldo a fine dicembre</span><span class="num" id="k-end"></span><span class="det" id="k-end-d"></span></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel card">
+      <h2>Entrate e uscite per mese</h2>
+      <p class="hint">Dicembre pesa per incassi di Natale, saldo dell'ordine natalizio e tredicesima.</p>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Entrate</span><span><i style="background:var(--s2)"></i>Uscite</span></div>
+      <div class="chartbox"><canvas id="c-flow" aria-label="Entrate e uscite per mese" role="img"></canvas></div>
+    </div>
+    <div class="panel card">
+      <h2>Saldo di cassa a fine mese</h2>
+      <p class="hint">I tre scenari con le ipotesi correnti su merce, altre uscite e saldo iniziale.</p>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Base</span><span><i style="background:var(--s2)"></i>Prudente</span><span><i style="background:var(--s3)"></i>Ottimistico</span><span id="lg-custom" hidden><i style="background:var(--fg)"></i>Personalizzato</span></div>
+      <div class="chartbox"><canvas id="c-bal" aria-label="Saldo di cassa a fine mese" role="img"></canvas></div>
+    </div>
+    <div class="panel card">
+      <h2>Dove vanno le uscite</h2>
+      <p class="hint">La merce si paga 30% all'ordine e 70% a 30 giorni: l'ordine di Natale (fine novembre) si salda a dicembre.</p>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Merce</span><span><i style="background:var(--s2)"></i>Personale</span><span><i style="background:var(--s3)"></i>Affitti</span><span><i style="background:var(--s4)"></i>Altri costi</span><span><i style="background:var(--s5)"></i>Altre uscite</span><span id="lg-iva" hidden><i style="background:var(--s6)"></i>IVA</span></div>
+      <div class="chartbox"><canvas id="c-mix" aria-label="Composizione delle uscite" role="img"></canvas></div>
+    </div>
+    <div class="panel card">
+      <h2>Incassi del trimestre per punto vendita</h2>
+      <div class="chips" role="group" aria-label="Filtra per società">
+        <button data-soc="" aria-pressed="true">Tutte</button>
+        <button data-soc="Società A" aria-pressed="false">Società A</button>
+        <button data-soc="Società B" aria-pressed="false">Società B</button>
+        <button data-soc="Società C" aria-pressed="false">Società C</button>
+      </div>
+      <p class="hint" id="pv-hint" style="margin:0"></p>
+      <div class="chartbox tall" id="pv-box"><canvas id="c-pv" aria-label="Incassi per punto vendita" role="img"></canvas></div>
+    </div>
+  </section>
+
+  <section class="panel card" aria-label="Dettaglio mensile">
+    <h2>Dettaglio mensile · <span id="t-scen"></span></h2>
+    <div class="tablewrap"><table id="tbl"></table></div>
+  </section>
+
+  <section class="notes">
+    <div class="panel card">
+      <h2>Come è costruita la previsione</h2>
+      <ul>
+        <li><b>Incassi:</b> stesso mese 2025 per negozio, più la crescita dello scenario. Quattro negozi senza storico completo sono stimati sulla media lug–set 2026 per l'indice stagionale.</li>
+        <li><b>Merce:</b> percentuale reale sugli incassi. Ordini a ottobre per ottobre, a novembre per novembre e per tutto dicembre, a dicembre per le prime due settimane di gennaio. Pagamento 30% all'ordine e 70% a 30 giorni. Il negozio in concessione al 60% dell'incasso.</li>
+        <li><b>Affitti, personale e finanziamenti:</b> media lug–set 2026, la struttura dopo le acquisizioni. Tredicesima pari a una mensilità a dicembre.</li>
+        <li><b>Altri costi generali:</b> media apr–set 2026, comprese imposte e rate già presenti nei dati. Escluse le uscite una tantum.</li>
+      </ul>
+    </div>
+    <div class="panel card">
+      <h2>Da tenere presente</h2>
+      <ul>
+        <li><b>Saldo iniziale:</b> è la somma dei flussi gen–set, non un saldo bancario. Va sostituito se serve il saldo assoluto.</li>
+        <li><b>IVA:</b> i dati non contengono versamenti IVA. Con "Includi IVA" attivo viene stimata al 22% su incassi, merce e affitti, liquidata ogni mese e versata il 16 del mese dopo, compresi i mesi gen–set. È una stima consolidata: nella realtà l'IVA si liquida società per società, e gli affitti senza IVA riducono il credito.</li>
+        <li><b>Coda a gennaio:</b> il 70% dell'ordine di dicembre, <span id="n-jan"></span>, si paga a gennaio 2027 ed è fuori dal trimestre.</li>
+        </ul>
+    </div>
+  </section>
+  <footer>Dati sintetici generati per questo progetto dimostrativo: nomi, società e importi non corrispondono a un'azienda reale. Struttura e logica del modello sono ispirate a un caso retail reale.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const D={"stores": [{"pv": "Negozio 21", "soc": "Società B", "ott": 10397.07, "nov": 12181.21, "dic": 21074.41, "gen": 11178.33, "est": [true, true, false]}, {"pv": "Negozio 12", "soc": "Società B", "ott": 21658.13, "nov": 23692.51, "dic": 32879.72, "gen": 18604.67, "est": [true, false, false]}, {"pv": "Negozio 03", "soc": "Società A", "ott": 14144.85, "nov": 18576.59, "dic": 28968.39, "gen": 12218.17, "est": [false, false, false]}, {"pv": "Negozio 22", "soc": "Società A", "ott": 7221.57, "nov": 6230.43, "dic": 12016.21, "gen": 5654.7, "est": [false, false, false]}, {"pv": "Negozio 17", "soc": "Società A", "ott": 16661.55, "nov": 17056.89, "dic": 25748.03, "gen": 10394.98, "est": [false, false, false]}, {"pv": "Negozio 05", "soc": "Società A", "ott": 11216.01, "nov": 14319.14, "dic": 21136.82, "gen": 9212.89, "est": [false, false, false]}, {"pv": "Negozio 10", "soc": "Società A", "ott": 21095.2, "nov": 25267.74, "dic": 34862.3, "gen": 15225.79, "est": [false, false, false]}, {"pv": "Negozio 19", "soc": "Società B", "ott": 9073.39, "nov": 9869.21, "dic": 12376.99, "gen": 6249.37, "est": [false, false, false]}, {"pv": "Negozio 20", "soc": "Società B", "ott": 29087.82, "nov": 37538.33, "dic": 53216.18, "gen": 25720.68, "est": [false, false, false]}, {"pv": "Negozio 11", "soc": "Società B", "ott": 14963.44, "nov": 15824.94, "dic": 22880.1, "gen": 10014.97, "est": [false, false, false]}, {"pv": "Negozio 15", "soc": "Società A", "ott": 34410.76, "nov": 40534.4, "dic": 64171.08, "gen": 30916.9, "est": [false, false, false]}, {"pv": "Negozio 14", "soc": "Società C", "ott": 11404.85, "nov": 12031.46, "dic": 20808.27, "gen": 9199.97, "est": [false, false, false]}, {"pv": "Negozio 08", "soc": "Società A", "ott": 6286.78, "nov": 7365.6, "dic": 11310.27, "gen": 5120.28, "est": [true, true, true]}, {"pv": "Negozio 06", "soc": "Società A", "ott": 13124.63, "nov": 16621.96, "dic": 21977.13, "gen": 10678.95, "est": [false, false, false]}, {"pv": "Negozio 04", "soc": "Società B", "ott": 10231.53, "nov": 12379.81, "dic": 22157.88, "gen": 8365.08, "est": [false, false, false]}, {"pv": "Negozio 02", "soc": "Società B", "ott": 7472.38, "nov": 8236.75, "dic": 12332.01, "gen": 6744.75, "est": [true, false, false]}, {"pv": "Negozio 01", "soc": "Società A", "ott": 16298.95, "nov": 19126.59, "dic": 36048.82, "gen": 14247.69, "est": [false, false, false]}, {"pv": "Negozio 07", "soc": "Società C", "ott": 11647.36, "nov": 13192.52, "dic": 19675.24, "gen": 9494.63, "est": [false, false, false]}, {"pv": "Negozio 18", "soc": "Società A", "ott": 8985.54, "nov": 10261.07, "dic": 17299.52, "gen": 6932.57, "est": [false, false, false]}, {"pv": "Negozio 13", "soc": "Società B", "ott": 26618.49, "nov": 32666.07, "dic": 46938.56, "gen": 23075.92, "est": [false, false, false]}, {"pv": "Negozio 23", "soc": "Società A", "ott": 11046.18, "nov": 14373.38, "dic": 25056.04, "gen": 10857.56, "est": [false, false, false]}, {"pv": "Negozio 16", "soc": "Società A", "ott": 10014.02, "nov": 12367.64, "dic": 20892.71, "gen": 9091.41, "est": [false, false, false]}, {"pv": "Negozio 09", "soc": "Società B", "ott": 14183.52, "nov": 13616.12, "dic": 18988.43, "gen": 9784.62, "est": [false, false, false]}], "sep": 322930.5, "saldo": 164275.15, "mp": 0.36, "fitto": 62827.69, "pers": 64524.45, "fin": 1898.38, "altri": 23318.72};
+const HIST={"inc": [227789.2, 227364.64, 271297.68, 245601.31, 297833.92, 273259.48, 398998.96, 368934.2, 342507.44], "mer": [73528.34, 65921.06, 93875.55, 92499.39, 93614.99, 109905.4, 187213.24, 95315.6, 115474.91], "fit": [57594.68, 59705.88, 59705.88, 60392.25, 59705.88, 63066.94, 67427.09, 67427.09, 67427.09]};
+const MESI=['Ottobre','Novembre','Dicembre'];
+const SCEN={0:'Prudente',2.5:'Base',8:'Ottimistico'};
+const fmt=new Intl.NumberFormat('it-IT',{maximumFractionDigits:0});
+const eur=v=>fmt.format(Math.round(v))+' €';
+const k=v=>{const a=Math.abs(v);return (v<0?'−':'')+(a>=1e6?(a/1e6).toLocaleString('it-IT',{maximumFractionDigits:2})+' mln €':Math.round(a/1000).toLocaleString('it-IT')+' k€')};
+const sum=(arr,f)=>arr.reduce((s,x)=>s+f(x),0);
+const exS=D.stores.filter(s=>s.pv!=='Negozio 08'), ovs=D.stores.find(s=>s.pv==='Negozio 08');
+const EX={ott:sum(exS,s=>s.ott),nov:sum(exS,s=>s.nov),dic:sum(exS,s=>s.dic),gen:sum(exS,s=>s.gen)};
+
+function model(g,mp,extra,s0){
+  const opt=st;
+  const f=1+g;
+  const inc=[EX.ott*f,EX.nov*f,EX.dic*f], incO=[ovs.ott*f,ovs.nov*f,ovs.dic*f];
+  const ord=[mp*EX.ott*f, mp*(EX.nov+EX.dic)*f, mp*0.5*EX.gen*f];
+  const sal=[0.7*mp*D.sep, 0.7*ord[0], 0.7*ord[1]];
+  const rows=[0,1,2].map(i=>{
+    const r={inc:inc[i],incO:incO[i]};
+    r.ent=r.inc+r.incO;
+    r.acc=0.3*ord[i]; r.sal=sal[i]; r.mOvs=0.6*incO[i];
+    r.merce=r.acc+r.sal+r.mOvs;
+    r.fitto=D.fitto; r.pers=D.pers; r.tred=i===2?D.pers:0; r.fin=D.fin; r.altri=D.altri; r.extra=extra;
+    return r;});
+  // IVA: liquidazione mensile = 22/122 x (incassi - merce fatturata - affitti); versamento il 16 del mese dopo, crediti riportati
+  const H=histIva(); let ivaRows=[0,0,0], accIva=0, liqDic=0;
+  if(opt.iva){
+    let cf=H.cf;
+    const liqF=[0,1,2].map(i=>K*(rows[i].ent-ord[i]-rows[i].mOvs-D.fitto));
+    const pay=v=>{const t=v+cf; if(t>0){cf=0;return t} cf=t; return 0;};
+    ivaRows=[pay(H.liqSet),pay(liqF[0]),pay(liqF[1])];
+    liqDic=Math.max(liqF[2]+cf,0);
+    accIva=opt.acc?0.88*liqDic:0;
+  }
+  rows.forEach((r,i)=>{r.iva=ivaRows[i]; r.accIva=i===2?accIva:0;
+    r.usc=r.merce+r.fitto+r.pers+r.tred+r.fin+r.altri+r.extra+r.iva+r.accIva; r.net=r.ent-r.usc;});
+  const start=s0-(opt.iva?H.paid:0);
+  let s=start; rows.forEach(r=>{r.s0=s; s+=r.net; r.s1=s;});
+  return {rows,jan:0.7*ord[2],ord,histPaid:opt.iva?H.paid:0,start,janIva:opt.iva?liqDic-accIva:0};
+}
+const K=22/122;
+function histIva(){ // gen–ago liquidati e versati feb–set; settembre versato il 16 ottobre
+  let cf=0,paid=0;
+  for(let m=0;m<8;m++){const v=K*(HIST.inc[m]-HIST.mer[m]-HIST.fit[m])+cf; if(v>0){paid+=v;cf=0}else cf=v;}
+  return {paid,cf,liqSet:K*(HIST.inc[8]-HIST.mer[8]-HIST.fit[8])};
+}
+
+const $=id=>document.getElementById(id);
+const st={g:2.5,mp:D.mp*100,ex:0,s0:D.saldo,soc:'',iva:false,acc:true};
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let charts={};
+
+function syncControls(){
+  $('g').value=st.g; $('mp').value=st.mp.toFixed(1); $('ex').value=st.ex; $('s0').value=Math.round(st.s0);
+  $('g-out').textContent=(st.g>0?'+':'')+st.g.toLocaleString('it-IT',{minimumFractionDigits:1})+'%';
+  $('mp-out').textContent=st.mp.toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  $('ex-out').textContent=eur(st.ex);
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(parseFloat(b.dataset.g)===st.g)));
+  $('iva').checked=st.iva; $('acc').checked=st.acc; $('acc').disabled=!st.iva;
+}
+function scenName(){return SCEN[st.g]?('Scenario '+SCEN[st.g].toLowerCase()):'Scenario personalizzato ('+(st.g>0?'+':'')+st.g.toLocaleString('it-IT')+'%)'}
+
+function baseOpts(stacked){
+  const fg2=css('--fg-2'), grid=css('--grid');
+  return {responsive:true,maintainAspectRatio:false,animation:{duration:250},
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:css('--surface'),titleColor:css('--fg'),bodyColor:css('--fg-2'),borderColor:css('--line'),borderWidth:1,padding:10,boxPadding:4,usePointStyle:true,
+      bodyFont:{family:css('--mono').split(',')[0].replace(/"/g,'')},callbacks:{label:c=>' '+c.dataset.label+': '+eur(c.parsed.y??c.parsed.x)}}},
+    scales:{x:{stacked,grid:{display:false},ticks:{color:fg2,font:{family:'Public Sans',size:12}},border:{color:css('--line')}},
+            y:{stacked,grid:{color:grid},border:{display:false},ticks:{color:fg2,font:{family:'IBM Plex Mono',size:11},callback:v=>k(v)}}}};
+}
+
+function render(){
+  const m=model(st.g/100,st.mp/100,st.ex,st.s0), R=m.rows;
+  const T={ent:sum(R,r=>r.ent),usc:sum(R,r=>r.usc),net:sum(R,r=>r.net)};
+  $('k-in').textContent=eur(T.ent); $('k-in-d').textContent='di cui dicembre '+eur(R[2].ent);
+  $('k-out').textContent=eur(T.usc); $('k-out-d').textContent='merce '+eur(sum(R,r=>r.merce))+' · tredicesima '+eur(D.pers)+(st.iva?' · IVA '+eur(sum(R,r=>r.iva+r.accIva)):'');
+  $('k-net').textContent=(T.net>=0?'+':'−')+eur(Math.abs(T.net));
+  const neg=R.filter(r=>r.net<0).map((r,i)=>MESI[R.indexOf(r)]);
+  $('k-net-d').innerHTML=neg.length?'<span class="pill warn">Negativo a '+neg.join(', ').toLowerCase()+'</span>':'<span class="pill good">Tutti i mesi positivi</span>';
+  $('k-end').textContent=eur(R[2].s1);
+  const minS=Math.min(...R.map(r=>r.s1));
+  $('k-end-d').textContent='partenza '+eur(m.start)+(st.iva?' (dopo IVA gen–set)':'')+' · minimo nel trimestre '+eur(minS);
+  const ivaQ=sum(R,r=>r.iva+r.accIva);
+  $('iva-note').innerHTML=st.iva?'IVA stimata versata gen–set: <b>'+eur(m.histPaid)+'</b>, tolta dal saldo iniziale · IVA nel trimestre: <b>'+eur(ivaQ)+'</b>'+(st.acc?' (di cui acconto 27/12 <b>'+eur(R[2].accIva)+'</b>)':'')+' · saldo IVA di dicembre a gennaio 2027: <b>'+eur(m.janIva)+'</b>':'Disattivata: la previsione non considera l\'IVA, come i dati di partenza. Attivandola, l\'IVA viene calcolata al 22% su incassi, merce e affitti.';
+  $('n-jan').textContent='circa '+eur(m.jan);
+  $('t-scen').textContent=scenName();
+
+  // flow chart
+  const c1=css('--s1'),c2=css('--s2'),c3=css('--s3'),c4=css('--s4'),c5=css('--s5'),fg=css('--fg');
+  const bar={borderRadius:{topLeft:4,topRight:4},borderSkipped:'start',maxBarThickness:46,categoryPercentage:.62,barPercentage:.92};
+  upsert('c-flow','bar',{labels:MESI,datasets:[
+    {label:'Entrate',data:R.map(r=>r.ent),backgroundColor:c1,...bar},
+    {label:'Uscite',data:R.map(r=>r.usc),backgroundColor:c2,...bar}]},baseOpts(false),
+    o=>{o.plugins.tooltip.callbacks.footer=items=>{const i=items[0].dataIndex;return 'Flusso netto: '+(R[i].net>=0?'+':'−')+eur(Math.abs(R[i].net))}; o.plugins.tooltip.footerColor=css('--fg'); o.scales.y.beginAtZero=true;});
+
+  // balance lines
+  const lab=['30 set','31 ott','30 nov','31 dic'];
+  const line=(g)=>{const mm=model(g/100,st.mp/100,st.ex,st.s0);return [mm.start,...mm.rows.map(r=>r.s1)]};
+  const sel=st.g; const ds=[[2.5,'Base',c1],[0,'Prudente',c2],[8,'Ottimistico',c3]].map(([g,l,c])=>({label:l,data:line(g),borderColor:c,backgroundColor:c,borderWidth:g===sel?3:2,pointRadius:g===sel?4:3,pointHoverRadius:6,pointBorderColor:css('--surface'),pointBorderWidth:2,tension:0}));
+  const custom=!SCEN.hasOwnProperty(sel); $('lg-custom').hidden=!custom;
+  if(custom) ds.unshift({label:'Personalizzato',data:line(sel),borderColor:fg,backgroundColor:fg,borderWidth:3,borderDash:[6,4],pointRadius:4,pointBorderColor:css('--surface'),pointBorderWidth:2,tension:0});
+  upsert('c-bal','line',{labels:lab,datasets:ds},baseOpts(false));
+
+  // mix stacked
+  const sb={maxBarThickness:56,categoryPercentage:.6,borderColor:css('--surface'),borderWidth:{top:2},borderSkipped:'start'};
+  $('lg-iva').hidden=!st.iva;
+  upsert('c-mix','bar',{labels:MESI,datasets:[
+    {label:'Merce',data:R.map(r=>r.merce),backgroundColor:c1,...sb},
+    {label:'Personale (incl. tredicesima)',data:R.map(r=>r.pers+r.tred),backgroundColor:c2,...sb},
+    {label:'Affitti',data:R.map(r=>r.fitto),backgroundColor:c3,...sb},
+    {label:'Altri costi e finanziamenti',data:R.map(r=>r.altri+r.fin),backgroundColor:c4,...sb},
+    {label:'Altre uscite',data:R.map(r=>r.extra),backgroundColor:c5,...sb},
+    {label:'IVA',data:R.map(r=>r.iva+r.accIva),backgroundColor:css('--s6'),...sb,borderRadius:{topLeft:4,topRight:4}}]},baseOpts(true),
+    o=>{o.plugins.tooltip.callbacks.footer=items=>'Totale uscite: '+eur(R[items[0].dataIndex].usc); o.plugins.tooltip.footerColor=css('--fg');});
+
+  // PV
+  const f=1+st.g/100;
+  const list=D.stores.filter(s=>!st.soc||s.soc===st.soc).map(s=>({pv:s.pv,v:(s.ott+s.nov+s.dic)*f,est:s.est.some(Boolean),soc:s.soc})).sort((a,b)=>b.v-a.v);
+  $('pv-hint').textContent=list.length+' punti vendita · totale '+eur(sum(list,x=>x.v))+' · le barre chiare hanno almeno un mese stimato';
+  const soft=c1+'80';
+  $('pv-box').style.height=Math.max(220,list.length*24+40)+'px';
+  const po=baseOpts(false); po.indexAxis='y'; po.interaction={mode:'nearest',axis:'y',intersect:false};
+  po.scales={x:{grid:{color:css('--grid')},border:{display:false},ticks:{color:css('--fg-2'),font:{family:'IBM Plex Mono',size:11},callback:v=>k(v)},beginAtZero:true},y:{grid:{display:false},border:{color:css('--line')},ticks:{color:css('--fg-2'),font:{family:'Public Sans',size:12},autoSkip:false}}};
+  po.plugins.tooltip.callbacks.label=c=>{const x=list[c.dataIndex];return ' Incassi ott–dic: '+eur(x.v)+(x.est?' (in parte stimati)':'')};
+  upsert('c-pv','bar',{labels:list.map(x=>x.pv),datasets:[{label:'Incassi',data:list.map(x=>x.v),backgroundColor:list.map(x=>x.est?soft:c1),borderRadius:{topRight:4,bottomRight:4},borderSkipped:'start',barPercentage:.78,categoryPercentage:.9}]},po);
+
+  // table
+  const rows=[['sec','Entrate'],['Incassi punti vendita',r=>r.inc],['Incassi negozio in concessione',r=>r.incO],['sum','Totale entrate',r=>r.ent],
+    ['sec','Uscite'],['Merce · acconto 30% ordini del mese',r=>-r.acc],['Merce · saldo 70% ordini mese precedente',r=>-r.sal],['Merce negozio in concessione (60% incasso)',r=>-r.mOvs],
+    ['Affitti',r=>-r.fitto],['Personale',r=>-r.pers],['Tredicesima',r=>-r.tred],['Finanziamenti, mutui e leasing',r=>-r.fin],['Altri costi generali',r=>-r.altri],['Altre uscite',r=>-r.extra],['IVA versata il 16 (liquidazione mese prima)',r=>-r.iva],['Acconto IVA 27 dicembre',r=>-r.accIva],
+    ['sum','Totale uscite',r=>-r.usc],['sum','Flusso di cassa netto',r=>r.net],['Saldo iniziale',r=>r.s0,'first'],['sum','Saldo finale',r=>r.s1,'last']];
+  const cell=v=>`<td class="${v<0?'neg':''}">${v<0?'('+fmt.format(Math.round(-v))+')':(Math.round(v)===0?'–':fmt.format(Math.round(v)))}</td>`;
+  let h='<thead><tr><th>Voce (€)</th>'+MESI.map(x=>'<th>'+x+'</th>').join('')+'<th>Trimestre</th></tr></thead><tbody>';
+  for(const row of rows){
+    if(row[0]==='sec'){h+=`<tr class="sec"><td colspan="5">${row[1]}</td></tr>`;continue}
+    const isSum=row[0]==='sum'; const lbl=isSum?row[1]:row[0]; const fn=isSum?row[2]:row[1]; const mode=isSum?row[3]:row[2];
+    const vals=R.map(fn); const tot=mode==='first'?vals[0]:mode==='last'?vals[2]:vals.reduce((a,b)=>a+b,0);
+    h+=`<tr class="${isSum?'sum':''}"><td>${lbl}</td>${vals.map(cell).join('')}${cell(tot)}</tr>`;
+  }
+  $('tbl').innerHTML=h+'</tbody>';
+}
+
+function upsert(id,type,data,opts,mut){
+  if(!window.Chart) return;
+  if(mut) mut(opts);
+  if(charts[id]&&charts[id].config.type===type){charts[id].data=data;charts[id].options=opts;charts[id].update();}
+  else{charts[id]?.destroy();charts[id]=new Chart($(id),{type,data,options:opts});}
+}
+
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{st.g=parseFloat(b.dataset.g);syncControls();render();}));
+$('g').addEventListener('input',e=>{st.g=parseFloat(e.target.value);syncControls();render();});
+$('mp').addEventListener('input',e=>{st.mp=parseFloat(e.target.value);syncControls();render();});
+$('ex').addEventListener('input',e=>{st.ex=parseFloat(e.target.value);syncControls();render();});
+$('s0').addEventListener('change',e=>{const v=parseFloat(e.target.value);st.s0=isNaN(v)?D.saldo:v;syncControls();render();});
+$('iva').addEventListener('change',e=>{st.iva=e.target.checked;syncControls();render();});
+$('acc').addEventListener('change',e=>{st.acc=e.target.checked;syncControls();render();});
+$('reset').addEventListener('click',()=>{Object.assign(st,{g:2.5,mp:D.mp*100,ex:0,s0:D.saldo});syncControls();render();});
+document.querySelectorAll('.chips button').forEach(b=>b.addEventListener('click',()=>{st.soc=b.dataset.soc;document.querySelectorAll('.chips button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render();}));
+
+function boot(){
+  if(!window.Chart){document.querySelectorAll('.chartbox').forEach(b=>b.innerHTML='<p class="hint">Grafici non disponibili: la libreria non si è caricata. Le tabelle sono comunque aggiornate.</p>');}
+  else{Chart.defaults.font.family='Public Sans, system-ui, sans-serif';}
+  syncControls();
+  try{render()}catch(e){console.error(e)}
+}
+const rerender=()=>{Object.values(charts).forEach(c=>c.destroy());charts={};render();};
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender);
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+boot();
+</script>
+
+</body></html>
